@@ -2,10 +2,42 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../models/invoice.dart';
-import 'settings_screen.dart'; // تمت الإضافة للانتقال إلى الإعدادات
+import 'settings_screen.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  bool _hasError = false;
+  String _errorMessage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    // تحميل البيانات بعد بناء الواجهة
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
+  }
+
+  Future<void> _loadData() async {
+    try {
+      setState(() {
+        _hasError = false;
+        _errorMessage = '';
+      });
+      await context.read<DashboardProvider>().loadDashboardData();
+    } catch (e) {
+      setState(() {
+        _hasError = true;
+        _errorMessage = e.toString();
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +55,6 @@ class DashboardScreen extends StatelessWidget {
           elevation: 2,
           backgroundColor: theme.colorScheme.primaryContainer,
           actions: [
-            // تمت الإضافة: زر الإعدادات
             IconButton(
               icon: const Icon(Icons.settings),
               tooltip: 'الإعدادات',
@@ -36,23 +67,61 @@ class DashboardScreen extends StatelessWidget {
             ),
             IconButton(
               icon: const Icon(Icons.refresh_rounded),
-              onPressed: () {
-                context.read<DashboardProvider>().loadDashboardData();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('تم تحديث البيانات المالية الحية')),
-                );
-              },
+              onPressed: _loadData,
             ),
           ],
         ),
         body: Consumer<DashboardProvider>(
           builder: (context, provider, child) {
+            // عرض مؤشر التحميل
             if (provider.isLoading) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text('جاري تحميل البيانات...', style: TextStyle(color: Colors.grey)),
+                  ],
+                ),
+              );
             }
 
+            // عرض رسالة خطأ إذا وُجدت
+            if (_hasError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'تعذر تحميل البيانات',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _errorMessage,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: _loadData,
+                        icon: const Icon(Icons.refresh),
+                        label: const Text('إعادة المحاولة'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            // عرض المحتوى الطبيعي
             return RefreshIndicator(
-              onRefresh: () => provider.loadDashboardData(),
+              onRefresh: _loadData,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
@@ -78,7 +147,6 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  // ويدجت اختصارات العمليات الأساسية
   Widget _buildQuickActions(BuildContext context, ThemeData theme) {
     return GridView.count(
       crossAxisCount: 4,
@@ -93,36 +161,28 @@ class DashboardScreen extends StatelessWidget {
           icon: Icons.payments_outlined,
           label: 'سند قبض',
           color: Colors.green,
-          onTap: () {
-            // TODO: انتقل إلى شاشة سند القبض
-          },
+          onTap: () {},
         ),
         _buildQuickActionCard(
           context: context,
           icon: Icons.receipt_outlined,
           label: 'سند صرف',
           color: Colors.red,
-          onTap: () {
-            // TODO: انتقل إلى شاشة سند الصرف
-          },
+          onTap: () {},
         ),
         _buildQuickActionCard(
           context: context,
           icon: Icons.shopping_cart_outlined,
           label: 'فاتورة بيع',
           color: Colors.blue,
-          onTap: () {
-            // TODO: انتقل إلى شاشة فاتورة البيع
-          },
+          onTap: () {},
         ),
         _buildQuickActionCard(
           context: context,
           icon: Icons.add_shopping_cart_outlined,
           label: 'فاتورة شراء',
           color: Colors.orange,
-          onTap: () {
-            // TODO: انتقل إلى شاشة فاتورة الشراء
-          },
+          onTap: () {},
         ),
       ],
     );
@@ -237,7 +297,9 @@ class DashboardScreen extends StatelessWidget {
         ),
       ],
     );
-  }Widget _buildKPICard({
+  }
+
+  Widget _buildKPICard({
     required String title,
     required double value,
     required IconData icon,

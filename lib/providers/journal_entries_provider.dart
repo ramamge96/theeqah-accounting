@@ -17,23 +17,29 @@ class JournalEntriesProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   JournalEntriesProvider() {
-    loadAllData();
+    _loadAllDataSafely();
   }
 
-  Future<void> loadAllData() async {
+  Future<void> _loadAllDataSafely() async {
     _isLoading = true;
     notifyListeners();
-
     try {
       _journalEntries = await _dbService.getAllJournalEntries();
       _accounts = await _dbService.getAllAccounts();
       _accountsMap = {for (var acc in _accounts) acc.accountCode: acc};
     } catch (e) {
-      debugPrint("Error loading journal entries data: $e");
+      debugPrint("خطأ في تحميل بيانات القيود: $e");
+      _journalEntries = [];
+      _accounts = [];
+      _accountsMap = {};
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> loadAllData() async {
+    await _loadAllDataSafely();
   }
 
   Future<bool> createManualJournalEntry(
@@ -44,7 +50,6 @@ class JournalEntriesProvider extends ChangeNotifier {
   ) async {
     _isLoading = true;
     notifyListeners();
-
     try {
       final now = DateTime.now().toIso8601String();
       final newEntry = JournalEntry(
@@ -55,12 +60,11 @@ class JournalEntriesProvider extends ChangeNotifier {
         createdAt: now,
         lines: lines,
       );
-
       await _dbService.insertJournalEntry(newEntry);
-      await loadAllData();
+      await _loadAllDataSafely();
       return true;
     } catch (e) {
-      debugPrint("Error creating manual journal entry: $e");
+      debugPrint("خطأ في إنشاء القيد اليدوي: $e");
       return false;
     } finally {
       _isLoading = false;

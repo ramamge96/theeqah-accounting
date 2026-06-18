@@ -11,6 +11,41 @@ import 'screens/invoice_creator_screen.dart';
 import 'screens/financial_reports_screen.dart';
 
 void main() {
+  // هذا يعرض أي خطأ بشكل مرئي بدلاً من الشاشة البيضاء
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'حدث خطأ',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    details.exception.toString(),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  };
+
   runApp(const TheeqahAccountingApp());
 }
 
@@ -24,7 +59,7 @@ class TheeqahAccountingApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AccountsProvider()),
         ChangeNotifierProvider(create: (_) => DashboardProvider()),
         ChangeNotifierProvider(create: (_) => JournalEntriesProvider()),
-        ChangeNotifierProvider(create: (_) => SettingsProvider()), // تمت الإضافة
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
       ],
       child: MaterialApp(
         title: 'نظام ثقة المحاسبي',
@@ -84,7 +119,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           index: _currentIndex,
           children: _screens,
         ),
-        bottomNavigationBar: BottomNavigationBar( // تم التغيير إلى BottomNavigationBar
+        bottomNavigationBar: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: (index) {
             setState(() {

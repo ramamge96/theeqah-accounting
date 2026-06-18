@@ -16,20 +16,25 @@ class AccountsProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   AccountsProvider() {
-    loadAccounts();
+    _loadAccountsSafely();
   }
 
-  Future<void> loadAccounts() async {
+  Future<void> _loadAccountsSafely() async {
     _isLoading = true;
     notifyListeners();
     try {
       _accounts = await _dbService.getAllAccounts();
     } catch (e) {
-      debugPrint("Error loading accounts: $e");
+      debugPrint("خطأ في تحميل الحسابات: $e");
+      _accounts = [];
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> loadAccounts() async {
+    await _loadAccountsSafely();
   }
 
   List<Account> get filteredAccounts {
@@ -95,10 +100,10 @@ class AccountsProvider extends ChangeNotifier {
         level: computedLevel,
       );
       await _dbService.insertAccount(newAccount);
-      await loadAccounts();
+      await _loadAccountsSafely();
       return true;
     } catch (e) {
-      debugPrint("Error creating account: $e");
+      debugPrint("خطأ في إنشاء الحساب: $e");
       return false;
     } finally {
       _isLoading = false;

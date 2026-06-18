@@ -11,20 +11,26 @@ class SettingsProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
 
   SettingsProvider() {
-    loadSettings();
+    // تحميل الإعدادات بشكل آمن بدون انتظار
+    _loadSettingsSafely();
   }
 
-  Future<void> loadSettings() async {
+  Future<void> _loadSettingsSafely() async {
     _isLoading = true;
     notifyListeners();
     try {
       _settings = await _service.loadSettings();
     } catch (e) {
-      debugPrint("Error loading settings: $e");
+      debugPrint("خطأ في تحميل الإعدادات: $e");
+      _settings = AppSettings(); // استخدام الإعدادات الافتراضية
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> loadSettings() async {
+    await _loadSettingsSafely();
   }
 
   Future<void> saveSettings(AppSettings newSettings) async {
@@ -34,14 +40,13 @@ class SettingsProvider extends ChangeNotifier {
       _settings = newSettings;
       await _service.saveSettings(_settings);
     } catch (e) {
-      debugPrint("Error saving settings: $e");
+      debugPrint("خطأ في حفظ الإعدادات: $e");
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
-  // دوال مساعدة لتحديث حقول محددة
   Future<void> updateCompanyName(String name) async {
     _settings.companyName = name;
     await saveSettings(_settings);
@@ -58,7 +63,7 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   Future<void> updatePassword(String newPassword) async {
-    _settings.passwordHash = newPassword; // لاحقاً نضيف تشفير
+    _settings.passwordHash = newPassword;
     await saveSettings(_settings);
   }
 }
