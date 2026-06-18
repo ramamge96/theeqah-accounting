@@ -332,6 +332,7 @@ class _InvoiceCreatorScreenState extends State<InvoiceCreatorScreen> {
 
               if (_invoiceLines.isNotEmpty) ...[
                 const Text("الأصناف والخدمات في الفاتورة الحالية:", style: TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
                 ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),

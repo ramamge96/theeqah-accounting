@@ -196,7 +196,7 @@ class _JournalEntriesScreenState extends State<JournalEntriesScreen> {
               Text(
                 '${totalDebit.toStringAsFixed(2)} ر.س',
                 style: TextStyle(
-                  fontWeight: FontWeight.extrabold,
+                  fontWeight: FontWeight.w800,
                   fontSize: 13,
                   color: theme.colorScheme.primary,
                 ),
@@ -502,7 +502,7 @@ class _AddManualEntryPageState extends State<AddManualEntryPage> {
       decoration: BoxDecoration(
         color: color.withOpacity(0.08),
         borderRadius: BorderRadius.circular(12),
-        border: BorderSide(color: color.withOpacity(0.3), width: 1.5),
+        border: Border.all(color: color.withOpacity(0.3), width: 1.5),
       ),
       child: Column(
         children: [
@@ -524,7 +524,7 @@ class _AddManualEntryPageState extends State<AddManualEntryPage> {
               if (!_isBalanced && _tempLines.isNotEmpty)
                 Text(
                   'الفرق: ${_difference.toStringAsFixed(2)} ر.س',
-                  style: TextStyle(fontWeight: FontWeight.extrabold, color: color, fontSize: 12),
+                  style: TextStyle(fontWeight: FontWeight.w800, color: color, fontSize: 12),
                 ),
             ],
           ),
@@ -548,7 +548,7 @@ class _AddManualEntryPageState extends State<AddManualEntryPage> {
         const SizedBox(height: 2),
         Text(
           '${value.toStringAsFixed(2)} ر.س',
-          style: TextStyle(fontWeight: FontWeight.extrabold, color: color, fontSize: 13),
+          style: TextStyle(fontWeight: FontWeight.w800, color: color, fontSize: 13),
         ),
       ],
     );
@@ -562,7 +562,7 @@ class _AddManualEntryPageState extends State<AddManualEntryPage> {
         decoration: BoxDecoration(
           color: Colors.grey[50],
           borderRadius: BorderRadius.circular(12),
-          border: BorderSide(color: Colors.grey[200]!),
+          border: Border.all(color: Colors.grey[200]!),
         ),
         child: const Center(
           child: Text(
@@ -586,7 +586,7 @@ class _AddManualEntryPageState extends State<AddManualEntryPage> {
           color: line.isDebit ? Colors.green[50]?.withOpacity(0.4) : Colors.red[50]?.withOpacity(0.4),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
-            border: BorderSide(
+            side: BorderSide(
               color: line.isDebit ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2),
             ),
           ),
@@ -629,7 +629,7 @@ class _AddManualEntryPageState extends State<AddManualEntryPage> {
                 Text(
                   '${line.amount.toStringAsFixed(2)} ر.س',
                   style: TextStyle(
-                    fontWeight: FontWeight.extrabold,
+                    fontWeight: FontWeight.w800,
                     fontSize: 13,
                     color: line.isDebit ? Colors.green[700] : Colors.red[700],
                   ),

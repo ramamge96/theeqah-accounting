@@ -74,12 +74,9 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
 
   // ========== دوال مساعدة مشتركة ==========
 
-  /// جمع أرصدة الحسابات الطرفية (Leaf Accounts) فقط تحت حساب معين
-  /// الحسابات العكسية تضرب في -1 لتُطرح من المجموع
   double _sumLeafBalances(String code, List<Account> allAccounts) {
     final children = allAccounts.where((acc) => acc.parentCode == code).toList();
     if (children.isEmpty) {
-      // هذا حساب طرفي (ورقة)، نرجع رصيده
       final current = allAccounts.firstWhere(
         (acc) => acc.accountCode == code,
         orElse: () => Account(
@@ -91,13 +88,11 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
           balance: 0.0,
         ),
       );
-      // الحساب العكسي يضرب في -1 ليُطرح تلقائياً
       if (_isContraAccount(current)) {
         return current.balance * -1;
       }
       return current.balance;
     }
-    // حساب وسيط، نجمع أرصدة أبنائه
     double sum = 0.0;
     for (var child in children) {
       sum += _sumLeafBalances(child.accountCode, allAccounts);
@@ -105,26 +100,24 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
     return sum;
   }
 
-  /// الحصول على الحسابات الطرفية فقط (Leaf Accounts) التي ليس لها أبناء
   List<Account> _getLeafAccounts(List<Account> allAccounts) {
     return allAccounts.where((acc) {
       return !allAccounts.any((other) => other.parentCode == acc.accountCode);
     }).toList();
   }
 
-  /// تصنيف الحساب: هل هو حساب عكسي (Contra Account)؟
   bool _isContraAccount(Account account) {
     switch (account.accountType) {
       case 'ASSET':
-        return !account.isDebitNormal; // أصل عكسي: دائن الطبيعة (مثل مجمع الإهلاك)
+        return !account.isDebitNormal;
       case 'LIABILITY':
-        return account.isDebitNormal; // خصم عكسي: مدين الطبيعة
+        return account.isDebitNormal;
       case 'EQUITY':
-        return account.isDebitNormal; // ملكية عكسية: مدين الطبيعة
+        return account.isDebitNormal;
       case 'REVENUE':
-        return account.isDebitNormal; // إيراد عكسي: مدين الطبيعة (مثل مردودات المبيعات)
+        return account.isDebitNormal;
       case 'EXPENSE':
-        return !account.isDebitNormal; // مصروف عكسي: دائن الطبيعة (مثل الخصم المكتسب)
+        return !account.isDebitNormal;
       default:
         return false;
     }
@@ -132,7 +125,6 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
 
   // ========== 1. ميزان المراجعة ==========
   Widget _buildTrialBalance(List<Account> accounts, ThemeData theme) {
-    // نستخدم الحسابات الطرفية فقط لتجنب التكرار المزدوج
     final leafAccounts = _getLeafAccounts(accounts);
     final accountsWithBalances = leafAccounts
         .where((acc) => acc.balance != 0.0)
@@ -141,17 +133,14 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
     double totalDebits = 0.0;
     double totalCredits = 0.0;
 
-    // ميزان المراجعة يعرض كل حساب بطبيعته الأصلية بدون قلب
     for (var acc in accountsWithBalances) {
       if (acc.balance > 0) {
-        // رصيد موجب: يتبع الطبيعة الأصلية للحساب
         if (acc.isDebitNormal) {
           totalDebits += acc.balance;
         } else {
           totalCredits += acc.balance;
         }
       } else {
-        // رصيد سالب: يظهر في العمود المعاكس لطبيعته
         if (acc.isDebitNormal) {
           totalCredits += acc.balance.abs();
         } else {
@@ -166,7 +155,6 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // مؤشر التوازن
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -198,8 +186,6 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
           const SizedBox(height: 20),
           _buildTableHeader(theme, 'ميزان المراجعة بالأرصدة'),
           const SizedBox(height: 12),
-
-          // رأس الجدول
           Container(
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
             decoration: BoxDecoration(
@@ -215,21 +201,17 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
             ),
           ),
           const SizedBox(height: 8),
-
-          // عرض كل حساب بطبيعته الأصلية
           ...accountsWithBalances.map((acc) {
             double debit = 0.0;
             double credit = 0.0;
 
             if (acc.balance > 0) {
-              // رصيد موجب: يتبع الطبيعة الأصلية
               if (acc.isDebitNormal) {
                 debit = acc.balance;
               } else {
                 credit = acc.balance;
               }
             } else {
-              // رصيد سالب: يظهر في العمود المعاكس
               if (acc.isDebitNormal) {
                 credit = acc.balance.abs();
               } else {
@@ -239,7 +221,6 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
 
             return _buildAccountRow(acc, debit, credit, theme);
           }),
-
           const Divider(height: 24),
           _buildTotalRow('المجاميع', totalDebits, totalCredits, theme, isBold: true),
           const SizedBox(height: 8),
@@ -252,19 +233,15 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
 
   // ========== 2. قائمة الدخل ==========
   Widget _buildIncomeStatement(List<Account> accounts, ThemeData theme) {
-    // نستخدم الحسابات الطرفية فقط
     final leafAccounts = _getLeafAccounts(accounts);
 
-    // الإيرادات: حسابات REVENUE الطرفية
     final revenueAccounts = leafAccounts
         .where((acc) => acc.accountType == 'REVENUE')
         .toList();
-    // المصروفات: حسابات EXPENSE الطرفية
     final expenseAccounts = leafAccounts
         .where((acc) => acc.accountType == 'EXPENSE')
         .toList();
 
-    // حساب الإيرادات مع مراعاة الحسابات العكسية
     double totalRevenue = 0.0;
     for (var acc in revenueAccounts) {
       if (_isContraAccount(acc)) {
@@ -274,7 +251,6 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
       }
     }
 
-    // حساب المصروفات مع مراعاة الحسابات العكسية
     double totalExpenses = 0.0;
     for (var acc in expenseAccounts) {
       if (_isContraAccount(acc)) {
@@ -294,8 +270,6 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
         children: [
           _buildTableHeader(theme, 'قائمة الدخل (ملخص)'),
           const SizedBox(height: 12),
-
-          // قسم الإيرادات
           const Text('الإيرادات:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.green)),
           const SizedBox(height: 8),
           ...revenueAccounts.map((acc) {
@@ -316,12 +290,10 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
             title: const Text('إجمالي الإيرادات', style: TextStyle(fontWeight: FontWeight.bold)),
             trailing: Text(
               '${totalRevenue.toStringAsFixed(2)} ر.س',
-              style: const TextStyle(fontWeight: FontWeight.extrabold, color: Colors.green),
+              style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.green),
             ),
           ),
           const Divider(height: 24),
-
-          // قسم المصروفات
           const Text('المصروفات:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red)),
           const SizedBox(height: 8),
           ...expenseAccounts.map((acc) {
@@ -342,12 +314,10 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
             title: const Text('إجمالي المصروفات', style: TextStyle(fontWeight: FontWeight.bold)),
             trailing: Text(
               '(${totalExpenses.toStringAsFixed(2)}) ر.س',
-              style: const TextStyle(fontWeight: FontWeight.extrabold, color: Colors.red),
+              style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.red),
             ),
           ),
           const Divider(height: 24),
-
-          // صافي الربح / الخسارة
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -368,7 +338,7 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
                 Text(
                   '${netProfit.abs().toStringAsFixed(2)} ر.س',
                   style: TextStyle(
-                    fontWeight: FontWeight.extrabold,
+                    fontWeight: FontWeight.w800,
                     fontSize: 18,
                     color: isProfit ? Colors.green[800] : Colors.red[800],
                   ),
@@ -383,14 +353,12 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
 
   // ========== 3. المركز المالي (الميزانية العمومية) ==========
   Widget _buildBalanceSheet(List<Account> accounts, ThemeData theme) {
-    // الحسابات الجذرية للأنواع الرئيسية
     final assetRoots = accounts.where((acc) => acc.accountType == 'ASSET' && acc.parentCode == null).toList();
     final liabilityRoots = accounts.where((acc) => acc.accountType == 'LIABILITY' && acc.parentCode == null).toList();
     final equityRoots = accounts.where((acc) => acc.accountType == 'EQUITY' && acc.parentCode == null).toList();
     final revenueRoots = accounts.where((acc) => acc.accountType == 'REVENUE' && acc.parentCode == null).toList();
     final expenseRoots = accounts.where((acc) => acc.accountType == 'EXPENSE' && acc.parentCode == null).toList();
 
-    // _sumLeafBalances تطرح الحسابات العكسية تلقائياً
     double totalAssets = 0.0;
     for (var root in assetRoots) {
       totalAssets += _sumLeafBalances(root.accountCode, accounts);
@@ -416,19 +384,14 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
       totalExpenses += _sumLeafBalances(root.accountCode, accounts);
     }
 
-    // الأصول تُعرض بالقيمة المحاسبية (الموجبة)
     double displayAssets = totalAssets.abs();
-    // الخصوم تُعرض موجبة (لكن قيمتها الحقيقية دائنة)
     double displayLiabilities = totalLiabilities.abs();
-    // حقوق الملكية موجبة
     double displayEquity = totalEquity.abs();
-    // الأرباح المحتجزة = الإيرادات - المصروفات
     double retainedEarnings = totalRevenue - totalExpenses;
     double totalEquityAndRetained = displayEquity + retainedEarnings;
     double totalLiabilitiesAndEquity = displayLiabilities + totalEquityAndRetained;
     bool isBalanced = (displayAssets - totalLiabilitiesAndEquity).abs() < 0.01;
 
-    // الحصول على الحسابات الطرفية للأصول والخصوم للعرض
     final leafAccounts = _getLeafAccounts(accounts);
     final assetLeaves = leafAccounts.where((acc) => acc.accountType == 'ASSET').toList();
     final liabilityLeaves = leafAccounts.where((acc) => acc.accountType == 'LIABILITY').toList();
@@ -438,7 +401,6 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // مؤشر التوازن
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -470,8 +432,6 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
           const SizedBox(height: 20),
           _buildTableHeader(theme, 'المركز المالي'),
           const SizedBox(height: 12),
-
-          // الأصول
           const Text('الأصول:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.green)),
           ...assetLeaves.map((acc) {
             final isContra = _isContraAccount(acc);
@@ -491,12 +451,10 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
             title: const Text('إجمالي الأصول', style: TextStyle(fontWeight: FontWeight.bold)),
             trailing: Text(
               '${displayAssets.toStringAsFixed(2)} ر.س',
-              style: TextStyle(fontWeight: FontWeight.extrabold, color: Colors.green[800]),
+              style: TextStyle(fontWeight: FontWeight.w800, color: Colors.green[800]),
             ),
           ),
           const Divider(height: 24),
-
-          // الخصوم
           const Text('الخصوم:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red)),
           ...liabilityLeaves.map((acc) {
             final displayValue = acc.balance.abs();
@@ -512,12 +470,10 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
             title: const Text('إجمالي الخصوم', style: TextStyle(fontWeight: FontWeight.bold)),
             trailing: Text(
               '${displayLiabilities.toStringAsFixed(2)} ر.س',
-              style: TextStyle(fontWeight: FontWeight.extrabold, color: Colors.red[800]),
+              style: TextStyle(fontWeight: FontWeight.w800, color: Colors.red[800]),
             ),
           ),
           const Divider(height: 24),
-
-          // حقوق الملكية
           const Text('حقوق الملكية:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.blueGrey)),
           ...equityLeaves.map((acc) {
             final displayValue = acc.balance.abs();
@@ -541,18 +497,16 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
             title: const Text('إجمالي حقوق الملكية والأرباح', style: TextStyle(fontWeight: FontWeight.bold)),
             trailing: Text(
               '${totalEquityAndRetained.toStringAsFixed(2)} ر.س',
-              style: TextStyle(fontWeight: FontWeight.extrabold, color: Colors.blueGrey[800]),
+              style: TextStyle(fontWeight: FontWeight.w800, color: Colors.blueGrey[800]),
             ),
           ),
           const Divider(height: 24),
-
-          // المجموع النهائي
           ListTile(
             tileColor: theme.colorScheme.primaryContainer.withOpacity(0.3),
             title: const Text('إجمالي الخصوم وحقوق الملكية', style: TextStyle(fontWeight: FontWeight.bold)),
             trailing: Text(
               '${totalLiabilitiesAndEquity.toStringAsFixed(2)} ر.س',
-              style: TextStyle(fontWeight: FontWeight.extrabold, color: theme.colorScheme.primary),
+              style: TextStyle(fontWeight: FontWeight.w800, color: theme.colorScheme.primary),
             ),
           ),
         ],
