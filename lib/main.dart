@@ -27,11 +27,13 @@ class TheeqahAccountingApp extends StatelessWidget {
       child: MaterialApp(
         title: 'نظام ثقة المحاسبي',
         debugShowCheckedModeBanner: false,
+        // دعم اللغة العربية
         locale: const Locale('ar', 'SA'),
         supportedLocales: const [
           Locale('ar', 'SA'),
           Locale('en', 'US'),
         ],
+        // تم الإصلاح: إضافة مفوضات الترجمة المفقودة
         localizationsDelegates: const [
           DefaultMaterialLocalizations.delegate,
           DefaultWidgetsLocalizations.delegate,

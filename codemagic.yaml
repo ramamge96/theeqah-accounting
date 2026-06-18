@@ -6,6 +6,8 @@ workflows:
       flutter: stable
     scripts:
       - flutter pub get
-      - flutter build apk --debug
+      - flutter build apk --release --split-per-abi
     artifacts:
-      - build/app/outputs/flutter-apk/app-debug.apk
+      - build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+      - build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+      - build/app/outputs/flutter-apk/app-x86_64-release.apk
