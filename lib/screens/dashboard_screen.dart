@@ -74,7 +74,7 @@ class DashboardScreen extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               'التقرير المالي اللحظي',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.extrabold, color: theme.colorScheme.onSurface),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: theme.colorScheme.onSurface),
             ),
           ],
         ),
@@ -166,7 +166,7 @@ class DashboardScreen extends StatelessWidget {
             const Spacer(),
             Text(
               '${value.toStringAsFixed(2)} ر.س',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.extrabold, color: accentColor),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: accentColor),
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 3),
@@ -337,7 +337,7 @@ class DashboardScreen extends StatelessWidget {
                       ),
                       title: Row(
                         children: [
-                          Text(invoice.invoiceNumber, style: const TextStyle(fontWeight: FontWeight.extrabold, fontSize: 13.5)),
+                          Text(invoice.invoiceNumber, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5)),
                           const Spacer(),
                           Text('${invoice.totalAmount.toStringAsFixed(2)} ر.س',
                               style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.bold, fontSize: 14)),

@@ -162,7 +162,7 @@ class _JournalEntriesScreenState extends State<JournalEntriesScreen> {
                 ),
                 child: Icon(
                   entry.sourceDocument == 'قيد يدوي عام' 
-                      ? Icons.handwriting_rounded 
+                      ? Icons.draw_rounded 
                       : Icons.receipt_long,
                   color: theme.colorScheme.primary,
                   size: 20,

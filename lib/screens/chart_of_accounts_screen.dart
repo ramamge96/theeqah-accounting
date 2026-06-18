@@ -298,7 +298,7 @@ class _ChartOfAccountsScreenState extends State<ChartOfAccountsScreen> {
                           Text(
                             account.nameAr,
                             style: TextStyle(
-                              fontWeight: indentLevel == 0 ? FontWeight.extrabold : FontWeight.bold,
+                              fontWeight: indentLevel == 0 ? FontWeight.w800 : FontWeight.bold,
                               fontSize: indentLevel == 0 ? 15 : 13.5,
                               color: theme.colorScheme.onSurface,
                             ),
