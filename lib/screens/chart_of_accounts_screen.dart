@@ -149,6 +149,9 @@ class _ChartOfAccountsScreenState extends State<ChartOfAccountsScreen> {
                                       }
                                     });
                                   },
+                                  onAddChild: () {
+                                    _showAddAccountSheet(context, theme, parentCode: account.accountCode);
+                                  },
                                 );
                               },
                             ),
@@ -245,6 +248,7 @@ class _ChartOfAccountsScreenState extends State<ChartOfAccountsScreen> {
     required bool isExpanded,
     required ThemeData theme,
     required VoidCallback onToggle,
+    required VoidCallback onAddChild,
   }) {
     final Color balanceColor = account.isDebitNormal ? Colors.green[700]! : theme.colorScheme.primary;
     final int indentLevel = account.level - 1;
@@ -340,6 +344,10 @@ class _ChartOfAccountsScreenState extends State<ChartOfAccountsScreen> {
                     ),
                   ],
                 ),
+                IconButton(
+                  icon: const Icon(Icons.add_circle_outline, color: Colors.grey),
+                  onPressed: onAddChild,
+                ),
               ],
             ),
           ),
@@ -348,7 +356,7 @@ class _ChartOfAccountsScreenState extends State<ChartOfAccountsScreen> {
     );
   }
 
-  void _showAddAccountSheet(BuildContext context, ThemeData theme) {
+  void _showAddAccountSheet(BuildContext context, ThemeData theme, {String? parentCode}) {
     final formKey = GlobalKey<FormState>();
     final codeController = TextEditingController();
     String nameAr = '';
@@ -356,7 +364,7 @@ class _ChartOfAccountsScreenState extends State<ChartOfAccountsScreen> {
     String type = 'ASSET';
     bool isDebitNormal = true;
     double balance = 0.0;
-    String? parentCode;
+    String? selectedParentCode = parentCode;
 
     showModalBottomSheet(
       context: context,
@@ -409,7 +417,7 @@ class _ChartOfAccountsScreenState extends State<ChartOfAccountsScreen> {
                             border: OutlineInputBorder(),
                             prefixIcon: Icon(Icons.account_tree),
                           ),
-                          value: parentCode,
+                          value: selectedParentCode,
                           items: [
                             const DropdownMenuItem(
                               value: null,
@@ -424,7 +432,7 @@ class _ChartOfAccountsScreenState extends State<ChartOfAccountsScreen> {
                           ],
                           onChanged: (val) {
                             setModalState(() {
-                              parentCode = val;
+                              selectedParentCode = val;
                               if (val != null) {
                                 final parent = allAccounts.firstWhere((acc) => acc.accountCode == val);
                                 type = parent.accountType;
@@ -562,7 +570,7 @@ class _ChartOfAccountsScreenState extends State<ChartOfAccountsScreen> {
                                       type: type,
                                       isDebitNormal: isDebitNormal,
                                       initialBalance: balance,
-                                      parentCode: parentCode,
+                                      parentCode: selectedParentCode,
                                     );
 
                                     if (success) {

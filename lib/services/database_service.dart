@@ -279,59 +279,8 @@ class DatabaseService {
     ''');
 
     await _seedInitialData(db);
-  }
-
-  Future<void> _seedInitialData(Database db) async {
-    final List<Map<String, dynamic>> initialAccounts = [
-      {'account_code': '1', 'name_ar': 'الأصول', 'name_en': 'Assets', 'account_type': 'ASSET', 'is_debit_normal': 1, 'balance': 150000.0, 'parent_code': null, 'level_depth': 1},
-      {'account_code': '11', 'name_ar': 'الأصول المتداولة', 'name_en': 'Current Assets', 'account_type': 'ASSET', 'is_debit_normal': 1, 'balance': 150000.0, 'parent_code': '1', 'level_depth': 2},
-      {'account_code': '1101', 'name_ar': 'الصندوق الرئيسي', 'name_en': 'Cash on Hand', 'account_type': 'ASSET', 'is_debit_normal': 1, 'balance': 50000.0, 'parent_code': '11', 'level_depth': 3},
-      {'account_code': '1102', 'name_ar': 'بنك الراجحي الرئيسي', 'name_en': 'Al Rajhi Bank', 'account_type': 'ASSET', 'is_debit_normal': 1, 'balance': 85000.0, 'parent_code': '11', 'level_depth': 3},
-      {'account_code': '1103', 'name_ar': 'حساب العملاء (مدينون)', 'name_en': 'Accounts Receivable', 'account_type': 'ASSET', 'is_debit_normal': 1, 'balance': 0.0, 'parent_code': '11', 'level_depth': 3},
-      {'account_code': '1104', 'name_ar': 'المخزون السلعي (المستودع)', 'name_en': 'Inventory', 'account_type': 'ASSET', 'is_debit_normal': 1, 'balance': 15000.0, 'parent_code': '11', 'level_depth': 3},
-      {'account_code': '2', 'name_ar': 'الخصوم / الالتزامات', 'name_en': 'Liabilities', 'account_type': 'LIABILITY', 'is_debit_normal': 0, 'balance': 0.0, 'parent_code': null, 'level_depth': 1},
-      {'account_code': '21', 'name_ar': 'الخصوم المتداولة', 'name_en': 'Current Liabilities', 'account_type': 'LIABILITY', 'is_debit_normal': 0, 'balance': 0.0, 'parent_code': '2', 'level_depth': 2},
-      {'account_code': '2101', 'name_ar': 'ضريبة القيمة المضافة المستحقة', 'name_en': 'VAT Payable', 'account_type': 'LIABILITY', 'is_debit_normal': 0, 'balance': 0.0, 'parent_code': '21', 'level_depth': 3},
-      {'account_code': '2102', 'name_ar': 'حساب الموردين (دائنون)', 'name_en': 'Accounts Payable', 'account_type': 'LIABILITY', 'is_debit_normal': 0, 'balance': 0.0, 'parent_code': '21', 'level_depth': 3},
-      {'account_code': '3101', 'name_ar': 'رأس المال المدفوع', 'name_en': 'Paid-up Capital', 'account_type': 'EQUITY', 'is_debit_normal': 0, 'balance': 150000.0, 'parent_code': null, 'level_depth': 1},
-      {'account_code': '4101', 'name_ar': 'إيرادات مبيعات السلع المباشرة', 'name_en': 'Sales Revenue', 'account_type': 'REVENUE', 'is_debit_normal': 0, 'balance': 0.0, 'parent_code': null, 'level_depth': 1},
-      {'account_code': '5101', 'name_ar': 'تكلفة البضاعة المباعة (COGS)', 'name_en': 'Cost of Goods Sold', 'account_type': 'EXPENSE', 'is_debit_normal': 1, 'balance': 0.0, 'parent_code': null, 'level_depth': 1},
-    ];
-
-    final batch = db.batch();
-    for (var account in initialAccounts) {
-      batch.insert('accounts', account);
-    }
-
-    final List<Map<String, dynamic>> initialContacts = [
-      {'id': 1, 'name': 'مؤسسة الرياض التجارية (عميل)', 'type': 'CLIENT', 'phone': '0501234567', 'email': 'riyadh@example.com', 'tax_number': '310123456789013', 'opening_balance': 0.0, 'current_balance': 0.0},
-      {'id': 2, 'name': 'شركة الشرقية للتوريد (مورد)', 'type': 'SUPPLIER', 'phone': '0547654321', 'email': 'sharg@example.com', 'tax_number': '311987654321013', 'opening_balance': 0.0, 'current_balance': 0.0},
-      {'id': 3, 'name': 'شركة حلول التقنية الرقمية (عميل)', 'type': 'CLIENT', 'phone': '0569876543', 'email': 'tech@example.com', 'tax_number': '310555432109876', 'opening_balance': 0.0, 'current_balance': 0.0},
-    ];
-    for (var contact in initialContacts) {
-      batch.insert('contacts', contact);
-    }
-
-    final List<Map<String, dynamic>> initialItems = [
-      {'id': 1, 'sku': 'PROD-DELL-I7', 'name': 'لابتوب ديل برو Core i7', 'sale_price': 3500.0, 'purchase_price': 2800.0, 'quantity_in_stock': 15.0, 'warehouse_id': null},
-      {'id': 2, 'sku': 'PROD-SAMS-4K', 'name': 'شاشة سامسونج 32 بوصة 4K', 'sale_price': 1800.0, 'purchase_price': 1300.0, 'quantity_in_stock': 25.0, 'warehouse_id': null},
-      {'id': 3, 'sku': 'PROD-HP-LSR', 'name': 'طابعة ليزر جيت ملونة HP', 'sale_price': 1200.0, 'purchase_price': 900.0, 'quantity_in_stock': 10.0, 'warehouse_id': null},
-    ];
-    for (var item in initialItems) {
-      batch.insert('inventory_items', item);
-    }
-
-    final List<Map<String, dynamic>> initialInvoices = [
-      {'id': 1, 'invoice_number': 'INV-2026-001', 'contact_id': 1, 'invoice_date': '2026-06-01', 'subtotal': 3500.0, 'discount_amount': 0.0, 'tax_amount': 525.0, 'total_amount': 4025.0, 'payment_type': 'CASH', 'warehouse_id': null},
-      {'id': 2, 'invoice_number': 'INV-2026-002', 'contact_id': 3, 'invoice_date': '2026-06-04', 'subtotal': 5400.0, 'discount_amount': 200.0, 'tax_amount': 780.0, 'total_amount': 5980.0, 'payment_type': 'BANK', 'warehouse_id': null},
-      {'id': 3, 'invoice_number': 'INV-2026-003', 'contact_id': 1, 'invoice_date': '2026-06-08', 'subtotal': 1800.0, 'discount_amount': 0.0, 'tax_amount': 270.0, 'total_amount': 2070.0, 'payment_type': 'CREDITOR', 'warehouse_id': null},
-      {'id': 4, 'invoice_number': 'INV-2026-004', 'contact_id': 3, 'invoice_date': '2026-06-10', 'subtotal': 1200.0, 'discount_amount': 50.0, 'tax_amount': 172.5, 'total_amount': 1322.5, 'payment_type': 'CASH', 'warehouse_id': null},
-    ];
-    for (var invoice in initialInvoices) {
-      batch.insert('invoices', invoice);
-    }
-
-    await batch.commit(noResult: true);
+  }Future<void> _seedInitialData(Database db) async {
+    // تم حذف جميع البيانات الافتراضية ليبدأ التطبيق فارغاً
   }
 
   // --- دليل الحسابات ---

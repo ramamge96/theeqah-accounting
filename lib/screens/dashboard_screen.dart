@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/dashboard_provider.dart';
 import '../models/invoice.dart';
+import 'settings_screen.dart'; // تمت الإضافة للانتقال إلى الإعدادات
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -22,6 +23,17 @@ class DashboardScreen extends StatelessWidget {
           elevation: 2,
           backgroundColor: theme.colorScheme.primaryContainer,
           actions: [
+            // تمت الإضافة: زر الإعدادات
+            IconButton(
+              icon: const Icon(Icons.settings),
+              tooltip: 'الإعدادات',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                );
+              },
+            ),
             IconButton(
               icon: const Icon(Icons.refresh_rounded),
               onPressed: () {
@@ -49,6 +61,8 @@ class DashboardScreen extends StatelessWidget {
                   children: [
                     _buildWelcomeHeader(theme),
                     const SizedBox(height: 16),
+                    _buildQuickActions(context, theme),
+                    const SizedBox(height: 16),
                     _buildKPIsGrid(provider, theme),
                     const SizedBox(height: 24),
                     _buildRevenueBarChart(provider, theme),
@@ -59,6 +73,99 @@ class DashboardScreen extends StatelessWidget {
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+
+  // ويدجت اختصارات العمليات الأساسية
+  Widget _buildQuickActions(BuildContext context, ThemeData theme) {
+    return GridView.count(
+      crossAxisCount: 4,
+      crossAxisSpacing: 8,
+      mainAxisSpacing: 8,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      childAspectRatio: 0.85,
+      children: [
+        _buildQuickActionCard(
+          context: context,
+          icon: Icons.payments_outlined,
+          label: 'سند قبض',
+          color: Colors.green,
+          onTap: () {
+            // TODO: انتقل إلى شاشة سند القبض
+          },
+        ),
+        _buildQuickActionCard(
+          context: context,
+          icon: Icons.receipt_outlined,
+          label: 'سند صرف',
+          color: Colors.red,
+          onTap: () {
+            // TODO: انتقل إلى شاشة سند الصرف
+          },
+        ),
+        _buildQuickActionCard(
+          context: context,
+          icon: Icons.shopping_cart_outlined,
+          label: 'فاتورة بيع',
+          color: Colors.blue,
+          onTap: () {
+            // TODO: انتقل إلى شاشة فاتورة البيع
+          },
+        ),
+        _buildQuickActionCard(
+          context: context,
+          icon: Icons.add_shopping_cart_outlined,
+          label: 'فاتورة شراء',
+          color: Colors.orange,
+          onTap: () {
+            // TODO: انتقل إلى شاشة فاتورة الشراء
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuickActionCard({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 28),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -130,9 +237,7 @@ class DashboardScreen extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  Widget _buildKPICard({
+  }Widget _buildKPICard({
     required String title,
     required double value,
     required IconData icon,

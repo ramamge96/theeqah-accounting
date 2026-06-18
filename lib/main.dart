@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'providers/accounts_provider.dart';
 import 'providers/dashboard_provider.dart';
 import 'providers/journal_entries_provider.dart';
+import 'providers/settings_provider.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/chart_of_accounts_screen.dart';
 import 'screens/journal_entries_screen.dart';
@@ -23,17 +24,16 @@ class TheeqahAccountingApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AccountsProvider()),
         ChangeNotifierProvider(create: (_) => DashboardProvider()),
         ChangeNotifierProvider(create: (_) => JournalEntriesProvider()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()), // تمت الإضافة
       ],
       child: MaterialApp(
         title: 'نظام ثقة المحاسبي',
         debugShowCheckedModeBanner: false,
-        // دعم اللغة العربية
         locale: const Locale('ar', 'SA'),
         supportedLocales: const [
           Locale('ar', 'SA'),
           Locale('en', 'US'),
         ],
-        // تم الإصلاح: إضافة مفوضات الترجمة المفقودة
         localizationsDelegates: const [
           DefaultMaterialLocalizations.delegate,
           DefaultWidgetsLocalizations.delegate,
@@ -84,37 +84,40 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           index: _currentIndex,
           children: _screens,
         ),
-        bottomNavigationBar: NavigationBar(
-          selectedIndex: _currentIndex,
-          onDestinationSelected: (index) {
+        bottomNavigationBar: BottomNavigationBar( // تم التغيير إلى BottomNavigationBar
+          currentIndex: _currentIndex,
+          onTap: (index) {
             setState(() {
               _currentIndex = index;
             });
           },
-          destinations: const [
-            NavigationDestination(
+          type: BottomNavigationBarType.fixed,
+          selectedItemColor: Theme.of(context).colorScheme.primary,
+          unselectedItemColor: Colors.grey,
+          items: const [
+            BottomNavigationBarItem(
               icon: Icon(Icons.dashboard_outlined),
-              selectedIcon: Icon(Icons.dashboard_rounded),
+              activeIcon: Icon(Icons.dashboard_rounded),
               label: 'الرئيسية',
             ),
-            NavigationDestination(
+            BottomNavigationBarItem(
               icon: Icon(Icons.account_tree_outlined),
-              selectedIcon: Icon(Icons.account_tree_rounded),
+              activeIcon: Icon(Icons.account_tree_rounded),
               label: 'الحسابات',
             ),
-            NavigationDestination(
+            BottomNavigationBarItem(
               icon: Icon(Icons.receipt_long_outlined),
-              selectedIcon: Icon(Icons.receipt_long_rounded),
+              activeIcon: Icon(Icons.receipt_long_rounded),
               label: 'فاتورة',
             ),
-            NavigationDestination(
+            BottomNavigationBarItem(
               icon: Icon(Icons.book_outlined),
-              selectedIcon: Icon(Icons.book_rounded),
+              activeIcon: Icon(Icons.book_rounded),
               label: 'القيود',
             ),
-            NavigationDestination(
+            BottomNavigationBarItem(
               icon: Icon(Icons.assessment_outlined),
-              selectedIcon: Icon(Icons.assessment_rounded),
+              activeIcon: Icon(Icons.assessment_rounded),
               label: 'تقارير',
             ),
           ],
