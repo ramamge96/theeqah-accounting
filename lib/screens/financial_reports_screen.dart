@@ -57,6 +57,31 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
             }
 
             final allAccounts = provider.accounts;
+            
+            // إذا كانت الحسابات فارغة، اعرض رسالة بدلاً من التعطل
+            if (allAccounts.isEmpty) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.account_balance_wallet_outlined, size: 64, color: Colors.grey[400]),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'لا توجد حسابات لعرض التقارير',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'قم بإضافة حسابات في دليل الحسابات أولاً',
+                        style: TextStyle(fontSize: 13, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
 
             return TabBarView(
               controller: _tabController,
@@ -101,6 +126,7 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
   }
 
   List<Account> _getLeafAccounts(List<Account> allAccounts) {
+    if (allAccounts.isEmpty) return [];
     return allAccounts.where((acc) {
       return !allAccounts.any((other) => other.parentCode == acc.accountCode);
     }).toList();
@@ -186,46 +212,50 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
           const SizedBox(height: 20),
           _buildTableHeader(theme, 'ميزان المراجعة بالأرصدة'),
           const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
-              borderRadius: BorderRadius.circular(6),
+          if (accountsWithBalances.isEmpty)
+            const Center(child: Text('لا توجد أرصدة لعرضها', style: TextStyle(color: Colors.grey)))
+          else ...[
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Row(
+                children: [
+                  Expanded(flex: 4, child: Text('اسم الحساب', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11))),
+                  Expanded(flex: 2, child: Text('مدين', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11), textAlign: TextAlign.center)),
+                  Expanded(flex: 2, child: Text('دائن', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11), textAlign: TextAlign.center)),
+                ],
+              ),
             ),
-            child: const Row(
-              children: [
-                Expanded(flex: 4, child: Text('اسم الحساب', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11))),
-                Expanded(flex: 2, child: Text('مدين', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11), textAlign: TextAlign.center)),
-                Expanded(flex: 2, child: Text('دائن', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11), textAlign: TextAlign.center)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 8),
-          ...accountsWithBalances.map((acc) {
-            double debit = 0.0;
-            double credit = 0.0;
+            const SizedBox(height: 8),
+            ...accountsWithBalances.map((acc) {
+              double debit = 0.0;
+              double credit = 0.0;
 
-            if (acc.balance > 0) {
-              if (acc.isDebitNormal) {
-                debit = acc.balance;
+              if (acc.balance > 0) {
+                if (acc.isDebitNormal) {
+                  debit = acc.balance;
+                } else {
+                  credit = acc.balance;
+                }
               } else {
-                credit = acc.balance;
+                if (acc.isDebitNormal) {
+                  credit = acc.balance.abs();
+                } else {
+                  debit = acc.balance.abs();
+                }
               }
-            } else {
-              if (acc.isDebitNormal) {
-                credit = acc.balance.abs();
-              } else {
-                debit = acc.balance.abs();
-              }
-            }
 
-            return _buildAccountRow(acc, debit, credit, theme);
-          }),
-          const Divider(height: 24),
-          _buildTotalRow('المجاميع', totalDebits, totalCredits, theme, isBold: true),
-          const SizedBox(height: 8),
-          if (!isBalanced)
-            _buildTotalRow('الفرق', (totalDebits - totalCredits).abs(), 0, theme, isBold: false),
+              return _buildAccountRow(acc, debit, credit, theme);
+            }),
+            const Divider(height: 24),
+            _buildTotalRow('المجاميع', totalDebits, totalCredits, theme, isBold: true),
+            const SizedBox(height: 8),
+            if (!isBalanced)
+              _buildTotalRow('الفرق', (totalDebits - totalCredits).abs(), 0, theme, isBold: false),
+          ],
         ],
       ),
     );
@@ -270,88 +300,92 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
         children: [
           _buildTableHeader(theme, 'قائمة الدخل (ملخص)'),
           const SizedBox(height: 12),
-          const Text('الإيرادات:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.green)),
-          const SizedBox(height: 8),
-          ...revenueAccounts.map((acc) {
-            final isContra = _isContraAccount(acc);
-            final amount = acc.balance.abs();
-            return ListTile(
-              title: Text(acc.nameAr),
-              trailing: Text(
-                '${isContra ? "(" : ""}${amount.toStringAsFixed(2)}${isContra ? ")" : ""} ر.س',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: isContra ? Colors.red : Colors.green,
-                ),
-              ),
-            );
-          }),
-          ListTile(
-            title: const Text('إجمالي الإيرادات', style: TextStyle(fontWeight: FontWeight.bold)),
-            trailing: Text(
-              '${totalRevenue.toStringAsFixed(2)} ر.س',
-              style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.green),
-            ),
-          ),
-          const Divider(height: 24),
-          const Text('المصروفات:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red)),
-          const SizedBox(height: 8),
-          ...expenseAccounts.map((acc) {
-            final isContra = _isContraAccount(acc);
-            final amount = acc.balance.abs();
-            return ListTile(
-              title: Text(acc.nameAr),
-              trailing: Text(
-                '${isContra ? "(" : ""}${amount.toStringAsFixed(2)}${isContra ? ")" : ""} ر.س',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: isContra ? Colors.green : Colors.red,
-                ),
-              ),
-            );
-          }),
-          ListTile(
-            title: const Text('إجمالي المصروفات', style: TextStyle(fontWeight: FontWeight.bold)),
-            trailing: Text(
-              '(${totalExpenses.toStringAsFixed(2)}) ر.س',
-              style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.red),
-            ),
-          ),
-          const Divider(height: 24),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: isProfit ? Colors.green[50] : Colors.red[50],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  isProfit ? 'صافي الربح' : 'صافي الخسارة',
+          if (revenueAccounts.isEmpty && expenseAccounts.isEmpty)
+            const Center(child: Text('لا توجد إيرادات أو مصروفات بعد', style: TextStyle(color: Colors.grey)))
+          else ...[
+            const Text('الإيرادات:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.green)),
+            const SizedBox(height: 8),
+            ...revenueAccounts.map((acc) {
+              final isContra = _isContraAccount(acc);
+              final amount = acc.balance.abs();
+              return ListTile(
+                title: Text(acc.nameAr),
+                trailing: Text(
+                  '${isContra ? "(" : ""}${amount.toStringAsFixed(2)}${isContra ? ")" : ""} ر.س',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: isProfit ? Colors.green[800] : Colors.red[800],
+                    color: isContra ? Colors.red : Colors.green,
                   ),
                 ),
-                Text(
-                  '${netProfit.abs().toStringAsFixed(2)} ر.س',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 18,
-                    color: isProfit ? Colors.green[800] : Colors.red[800],
-                  ),
-                ),
-              ],
+              );
+            }),
+            ListTile(
+              title: const Text('إجمالي الإيرادات', style: TextStyle(fontWeight: FontWeight.bold)),
+              trailing: Text(
+                '${totalRevenue.toStringAsFixed(2)} ر.س',
+                style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.green),
+              ),
             ),
-          ),
+            const Divider(height: 24),
+            const Text('المصروفات:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red)),
+            const SizedBox(height: 8),
+            ...expenseAccounts.map((acc) {
+              final isContra = _isContraAccount(acc);
+              final amount = acc.balance.abs();
+              return ListTile(
+                title: Text(acc.nameAr),
+                trailing: Text(
+                  '${isContra ? "(" : ""}${amount.toStringAsFixed(2)}${isContra ? ")" : ""} ر.س',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: isContra ? Colors.green : Colors.red,
+                  ),
+                ),
+              );
+            }),
+            ListTile(
+              title: const Text('إجمالي المصروفات', style: TextStyle(fontWeight: FontWeight.bold)),
+              trailing: Text(
+                '(${totalExpenses.toStringAsFixed(2)}) ر.س',
+                style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.red),
+              ),
+            ),
+            const Divider(height: 24),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isProfit ? Colors.green[50] : Colors.red[50],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    isProfit ? 'صافي الربح' : 'صافي الخسارة',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: isProfit ? Colors.green[800] : Colors.red[800],
+                    ),
+                  ),
+                  Text(
+                    '${netProfit.abs().toStringAsFixed(2)} ر.س',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 18,
+                      color: isProfit ? Colors.green[800] : Colors.red[800],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
 
-  // ========== 3. المركز المالي (الميزانية العمومية) ==========
+  // ========== 3. المركز المالي ==========
   Widget _buildBalanceSheet(List<Account> accounts, ThemeData theme) {
     final assetRoots = accounts.where((acc) => acc.accountType == 'ASSET' && acc.parentCode == null).toList();
     final liabilityRoots = accounts.where((acc) => acc.accountType == 'LIABILITY' && acc.parentCode == null).toList();
@@ -396,6 +430,10 @@ class _FinancialReportsScreenState extends State<FinancialReportsScreen>
     final assetLeaves = leafAccounts.where((acc) => acc.accountType == 'ASSET').toList();
     final liabilityLeaves = leafAccounts.where((acc) => acc.accountType == 'LIABILITY').toList();
     final equityLeaves = leafAccounts.where((acc) => acc.accountType == 'EQUITY').toList();
+
+    if (assetLeaves.isEmpty && liabilityLeaves.isEmpty && equityLeaves.isEmpty) {
+      return const Center(child: Text('لا توجد بيانات كافية للمركز المالي', style: TextStyle(color: Colors.grey)));
+    }
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),

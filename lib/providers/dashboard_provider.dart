@@ -40,11 +40,23 @@ class DashboardProvider extends ChangeNotifier {
       _calculateTotals(accounts);
 
       final contacts = await _dbService.getAllContacts();
-      _contactNames = {for (var c in contacts) if (c.id != null) c.id!: c.name};
+      _contactNames = {};
+      for (var c in contacts) {
+        if (c.id != null) {
+          _contactNames[c.id!] = c.name;
+        }
+      }
 
       _lastInvoices = await _dbService.getLastInvoices(limit: 5);
     } catch (e) {
       debugPrint("Error loading dashboard data: $e");
+      _totalAssets = 0;
+      _totalLiabilities = 0;
+      _totalEquity = 0;
+      _totalRevenues = 0;
+      _totalExpenses = 0;
+      _lastInvoices = [];
+      _contactNames = {};
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -57,6 +69,8 @@ class DashboardProvider extends ChangeNotifier {
     _totalEquity = 0.0;
     _totalRevenues = 0.0;
     _totalExpenses = 0.0;
+
+    if (accounts.isEmpty) return;
 
     final rootAccounts = accounts.where((acc) => acc.parentCode == null).toList();
 
