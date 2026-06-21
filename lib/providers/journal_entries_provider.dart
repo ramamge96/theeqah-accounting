@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart' as intl;
-import '../providers/journal_entries_provider.dart';
+import '../providers/journal_entries_provider.dart'; // <-- تمت إضافة هذا السطر
 import '../models/journal_entry.dart';
 import '../models/account.dart';
 
