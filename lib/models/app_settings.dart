@@ -1,7 +1,7 @@
 class AppSettings {
   // معلومات الشركة
   String companyName;
-  String? logoPath; // مسار الشعار
+  String? logoPath;
   String? phoneNumber;
 
   // إعدادات الفواتير
@@ -10,8 +10,8 @@ class AppSettings {
   String invoicePrefix;
 
   // إعدادات الطباعة
-  String paperSize; // A4, Letter
-  String exportFormat; // PDF, Image
+  String paperSize;
+  String exportFormat;
 
   // إعدادات العرض
   bool showHeaderOnInvoice;
@@ -58,13 +58,52 @@ class AppSettings {
       logoPath: map['logoPath'],
       phoneNumber: map['phoneNumber'],
       defaultCurrency: map['defaultCurrency'] ?? 'SAR',
-      defaultTaxRate: (map['defaultTaxRate'] as num?)?.toDouble() ?? 15.0,
+      defaultTaxRate: _safeDouble(map['defaultTaxRate'], 15.0),
       invoicePrefix: map['invoicePrefix'] ?? 'INV-',
       paperSize: map['paperSize'] ?? 'A4',
       exportFormat: map['exportFormat'] ?? 'PDF',
       showHeaderOnInvoice: map['showHeaderOnInvoice'] ?? true,
       showFooterOnInvoice: map['showFooterOnInvoice'] ?? true,
       passwordHash: map['passwordHash'],
+    );
+  }
+
+  /// تحويل آمن من أي نوع إلى double
+  static double _safeDouble(dynamic value, double fallback) {
+    if (value is num) return value.toDouble();
+    if (value is String) {
+      final parsed = double.tryParse(value);
+      if (parsed != null) return parsed;
+    }
+    return fallback;
+  }
+
+  /// إنشاء نسخة جديدة مع تعديل بعض الحقول
+  AppSettings copyWith({
+    String? companyName,
+    String? logoPath,
+    String? phoneNumber,
+    String? defaultCurrency,
+    double? defaultTaxRate,
+    String? invoicePrefix,
+    String? paperSize,
+    String? exportFormat,
+    bool? showHeaderOnInvoice,
+    bool? showFooterOnInvoice,
+    String? passwordHash,
+  }) {
+    return AppSettings(
+      companyName: companyName ?? this.companyName,
+      logoPath: logoPath ?? this.logoPath,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      defaultCurrency: defaultCurrency ?? this.defaultCurrency,
+      defaultTaxRate: defaultTaxRate ?? this.defaultTaxRate,
+      invoicePrefix: invoicePrefix ?? this.invoicePrefix,
+      paperSize: paperSize ?? this.paperSize,
+      exportFormat: exportFormat ?? this.exportFormat,
+      showHeaderOnInvoice: showHeaderOnInvoice ?? this.showHeaderOnInvoice,
+      showFooterOnInvoice: showFooterOnInvoice ?? this.showFooterOnInvoice,
+      passwordHash: passwordHash ?? this.passwordHash,
     );
   }
 }

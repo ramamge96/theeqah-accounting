@@ -52,6 +52,32 @@ class InvoiceLine {
       totalAmount: (map['total_amount'] as num? ?? 0.0).toDouble(),
     );
   }
+
+  InvoiceLine copyWith({
+    int? id,
+    int? invoiceId,
+    String? sku,
+    String? name,
+    double? quantity,
+    double? price,
+    double? discount,
+    double? taxRate,
+    double? taxAmount,
+    double? totalAmount,
+  }) {
+    return InvoiceLine(
+      id: id ?? this.id,
+      invoiceId: invoiceId ?? this.invoiceId,
+      sku: sku ?? this.sku,
+      name: name ?? this.name,
+      quantity: quantity ?? this.quantity,
+      price: price ?? this.price,
+      discount: discount ?? this.discount,
+      taxRate: taxRate ?? this.taxRate,
+      taxAmount: taxAmount ?? this.taxAmount,
+      totalAmount: totalAmount ?? this.totalAmount,
+    );
+  }
 }
 
 class Invoice {
@@ -109,6 +135,34 @@ class Invoice {
       paymentType: map['payment_type'] ?? 'CASH',
       warehouseId: map['warehouse_id'] as int?,
       lines: lines,
+    );
+  }
+
+  Invoice copyWith({
+    int? id,
+    String? invoiceNumber,
+    int? contactId,
+    String? date,
+    double? subtotal,
+    double? discountAmount,
+    double? taxAmount,
+    double? totalAmount,
+    String? paymentType,
+    int? warehouseId,
+    List<InvoiceLine>? lines,
+  }) {
+    return Invoice(
+      id: id ?? this.id,
+      invoiceNumber: invoiceNumber ?? this.invoiceNumber,
+      contactId: contactId ?? this.contactId,
+      date: date ?? this.date,
+      subtotal: subtotal ?? this.subtotal,
+      discountAmount: discountAmount ?? this.discountAmount,
+      taxAmount: taxAmount ?? this.taxAmount,
+      totalAmount: totalAmount ?? this.totalAmount,
+      paymentType: paymentType ?? this.paymentType,
+      warehouseId: warehouseId ?? this.warehouseId,
+      lines: lines ?? this.lines,
     );
   }
 }

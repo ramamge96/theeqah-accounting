@@ -3,92 +3,103 @@ import '../models/account.dart';
 import '../services/database_service.dart';
 
 class AccountsProvider extends ChangeNotifier {
-  final _dbService = DatabaseService.instance;
+  final DatabaseService _dbService = DatabaseService.instance;
 
   List<Account> _accounts = [];
-  String? _selectedTypeFilter;
-  String _searchQuery = "";
+  List<Account> _filteredAccounts = [];
+
   bool _isLoading = false;
+  String _searchQuery = '';
+  String? _selectedTypeFilter;
 
-  List<Account> get accounts => _accounts;
-  String? get selectedTypeFilter => _selectedTypeFilter;
-  String get searchQuery => _searchQuery;
+  // ================= GETTERS =================
+  List<Account> get accounts => List.unmodifiable(_accounts);
+  List<Account> get filteredAccounts => List.unmodifiable(_filteredAccounts);
   bool get isLoading => _isLoading;
+  String get searchQuery => _searchQuery;
+  String? get selectedTypeFilter => _selectedTypeFilter;
 
+  // ================= CONSTRUCTOR =================
   AccountsProvider() {
     _loadAccountsSafely();
   }
 
+  // ================= LOAD =================
   Future<void> _loadAccountsSafely() async {
     _isLoading = true;
-    notifyListeners();
+    try { notifyListeners(); } catch (_) {}
+
     try {
-      _accounts = await _dbService.getAllAccounts();
+      final result = await _dbService.getAllAccounts();
+      _accounts = result;
+      _applyFiltersSafely();
     } catch (e) {
-      debugPrint("خطأ في تحميل الحسابات: $e");
+      debugPrint("خطأ تحميل الحسابات: $e");
       _accounts = [];
+      _filteredAccounts = [];
     } finally {
       _isLoading = false;
-      notifyListeners();
+      try { notifyListeners(); } catch (_) {}
     }
   }
 
-  Future<void> loadAccounts() async {
-    await _loadAccountsSafely();
-  }
+  Future<void> loadAccounts() async => await _loadAccountsSafely();
 
-  List<Account> get filteredAccounts {
-    List<Account> temp = _accounts;
-    if (_selectedTypeFilter != null) {
-      temp = temp.where((acc) => acc.accountType == _selectedTypeFilter).toList();
-    }
-    if (_searchQuery.isNotEmpty) {
-      temp = temp.where((acc) =>
-          acc.nameAr.contains(_searchQuery) ||
-          acc.nameEn.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          acc.accountCode.contains(_searchQuery)).toList();
-    }
-    return temp;
+  // ================= FILTER =================
+  void setSearchQuery(String query) {
+    _searchQuery = query.trim();
+    _applyFiltersSafely();
+    try { notifyListeners(); } catch (_) {}
   }
 
   void setTypeFilter(String? type) {
     _selectedTypeFilter = type;
-    notifyListeners();
+    _applyFiltersSafely();
+    try { notifyListeners(); } catch (_) {}
   }
 
-  void setSearchQuery(String query) {
-    _searchQuery = query;
-    notifyListeners();
+  void _applyFiltersSafely() {
+    List<Account> temp = List<Account>.from(_accounts);
+
+    if (_selectedTypeFilter != null && _selectedTypeFilter!.isNotEmpty) {
+      temp = temp.where((acc) => acc.accountType == _selectedTypeFilter).toList();
+    }
+
+    if (_searchQuery.isNotEmpty) {
+      final search = _searchQuery.toLowerCase();
+      temp = temp.where((acc) {
+        final code = (acc.accountCode).toLowerCase();
+        final nameAr = (acc.nameAr).toLowerCase();
+        final nameEn = (acc.nameEn).toLowerCase();
+        return code.contains(search) || nameAr.contains(search) || nameEn.contains(search);
+      }).toList();
+    }
+
+    _filteredAccounts = temp;
   }
 
+  // ================= ADD ACCOUNT =================
   Future<bool> addNewAccount({
     required String code,
     required String nameAr,
-    required String nameEn,
+    String nameEn = '',
     required String type,
     required bool isDebitNormal,
-    required double initialBalance,
+    double initialBalance = 0.0,
     String? parentCode,
   }) async {
     _isLoading = true;
-    notifyListeners();
+    try { notifyListeners(); } catch (_) {}
+
     try {
-      int computedLevel = 1;
+      int level = 1;
       if (parentCode != null && parentCode.isNotEmpty) {
-        final parent = _accounts.firstWhere(
-          (acc) => acc.accountCode == parentCode,
-          orElse: () => Account(
-            accountCode: parentCode,
-            nameAr: "",
-            nameEn: "",
-            accountType: type,
-            isDebitNormal: isDebitNormal,
-          ),
-        );
-        if (parent.nameAr.isNotEmpty) {
-          computedLevel = parent.level + 1;
+        final parentList = _accounts.where((acc) => acc.accountCode == parentCode);
+        if (parentList.isNotEmpty) {
+          level = parentList.first.level + 1;
         }
       }
+
       final newAccount = Account(
         accountCode: code,
         nameAr: nameAr,
@@ -96,18 +107,47 @@ class AccountsProvider extends ChangeNotifier {
         accountType: type,
         isDebitNormal: isDebitNormal,
         balance: initialBalance,
-        parentCode: parentCode == "" ? null : parentCode,
-        level: computedLevel,
+        parentCode: parentCode,
+        level: level,
       );
+
       await _dbService.insertAccount(newAccount);
       await _loadAccountsSafely();
       return true;
     } catch (e) {
-      debugPrint("خطأ في إنشاء الحساب: $e");
+      debugPrint("خطأ إضافة الحساب: $e");
       return false;
     } finally {
       _isLoading = false;
-      notifyListeners();
+      try { notifyListeners(); } catch (_) {}
     }
   }
+
+  // ================= UTILITIES =================
+  Account? getAccountByCode(String code) {
+    try {
+      final result = _accounts.where((acc) => acc.accountCode == code);
+      return result.isEmpty ? null : result.first;
+    } catch (e) {
+      debugPrint("خطأ البحث عن الحساب: $e");
+      return null;
+    }
+  }
+
+  bool accountExists(String code) {
+    return _accounts.any((acc) => acc.accountCode == code);
+  }
+
+  List<Account> getChildAccounts(String parentCode) {
+    return _accounts.where((acc) => acc.parentCode == parentCode).toList();
+  }
+
+  void clearFilters() {
+    _searchQuery = '';
+    _selectedTypeFilter = null;
+    _filteredAccounts = List<Account>.from(_accounts);
+    try { notifyListeners(); } catch (_) {}
+  }
+
+  Future<void> refreshAccounts() async => await _loadAccountsSafely();
 }
